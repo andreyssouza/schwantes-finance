@@ -18,7 +18,8 @@ import {
   Search, 
   Filter, 
   Sun, 
-  Moon 
+  Moon,
+  Calendar
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -28,12 +29,37 @@ export default function Dashboard() {
   const [type, setType] = useState('INCOME');
   const [loading, setLoading] = useState(false);
 
-  // Filtros
+  // Filtros de busca e tipo
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('ALL');
 
+  // Filtro de Mês e Ano (padrão: mês e ano atuais)
+  const currentDate = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth()); // 0 a 11
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+
   // Dark Mode
   const [darkMode, setDarkMode] = useState(false);
+
+  // Lista de meses para o select
+  const months = [
+    { value: 0, label: 'Janeiro' },
+    { value: 1, label: 'Fevereiro' },
+    { value: 2, label: 'Março' },
+    { value: 3, label: 'Abril' },
+    { value: 4, label: 'Maio' },
+    { value: 5, label: 'Junho' },
+    { value: 6, label: 'Julho' },
+    { value: 7, label: 'Agosto' },
+    { value: 8, label: 'Setembro' },
+    { value: 9, label: 'Outubro' },
+    { value: 10, label: 'Novembro' },
+    { value: 11, label: 'Dezembro' },
+    { value: 'ALL', label: 'Todos os Meses' },
+  ];
+
+  // Anos disponíveis para o select (ano atual - 2 até ano atual + 2)
+  const years = Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - 2 + i);
 
   // Auxiliares de Formatação
   const formatCurrency = (val) => {
@@ -131,18 +157,32 @@ export default function Dashboard() {
 
   const safeTransactions = Array.isArray(transactions) ? transactions : [];
 
-  const filteredTransactions = safeTransactions.filter((t) => {
+  // FILTRAGEM POR MÊS E ANO
+  const monthFilteredTransactions = safeTransactions.filter((t) => {
+    const rawDate = t.createdAt || t.date;
+    if (!rawDate) return true;
+
+    const tDate = new Date(rawDate);
+    const matchesYear = selectedYear === 'ALL' || tDate.getFullYear() === Number(selectedYear);
+    const matchesMonth = selectedMonth === 'ALL' || tDate.getMonth() === Number(selectedMonth);
+
+    return matchesYear && matchesMonth;
+  });
+
+  // FILTRAGEM FINAL POR BUSCA DE TEXTO E TIPO (INCOME / EXPENSE)
+  const filteredTransactions = monthFilteredTransactions.filter((t) => {
     const text = t.title || t.description || '';
     const matchesSearch = text.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'ALL' || t.type === filterType;
     return matchesSearch && matchesType;
   });
 
-  const income = safeTransactions
+  // CÁLCULOS BASEADOS APENAS NO PERÍODO SELECIONADO
+  const income = monthFilteredTransactions
     .filter((t) => t.type === 'INCOME')
     .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
-  const outcome = safeTransactions
+  const outcome = monthFilteredTransactions
     .filter((t) => t.type === 'EXPENSE')
     .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
@@ -163,7 +203,38 @@ export default function Dashboard() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1000px', margin: '0 auto', padding: '1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+      
+      {/* BARRA SUPERIOR COM FILTRO DE MÊS/ANO E MODO ESCURO */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        
+        {/* FILTRO PERÍODO (MÊS E ANO) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: theme.bgCard, padding: '0.5rem 1rem', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
+          <Calendar size={18} color={theme.textSecondary} />
+          <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: theme.textPrimary }}>Período:</span>
+          
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
+            style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', border: `1px solid ${theme.border}`, backgroundColor: theme.bgCard, color: theme.textPrimary, fontSize: '0.875rem' }}
+          >
+            {months.map((m) => (
+              <option key={m.value} value={m.value}>{m.label}</option>
+            ))}
+          </select>
+
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
+            style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', border: `1px solid ${theme.border}`, backgroundColor: theme.bgCard, color: theme.textPrimary, fontSize: '0.875rem' }}
+          >
+            <option value="ALL">Todos os Anos</option>
+            {years.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* BOTÃO MODO ESCURO */}
         <button
           type="button"
           onClick={() => setDarkMode(!darkMode)}
@@ -185,6 +256,7 @@ export default function Dashboard() {
         </button>
       </div>
 
+      {/* CARDS DE TOTALIZADORES */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
         <div style={{ backgroundColor: theme.bgCard, padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', color: theme.textSecondary }}>
@@ -208,7 +280,7 @@ export default function Dashboard() {
 
         <div style={{ backgroundColor: total >= 0 ? '#10b981' : '#ef4444', color: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span>Saldo Total</span>
+            <span>Saldo do Período</span>
             <DollarSign color="#fff" size={24} />
           </div>
           <strong style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>
@@ -217,6 +289,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* FORMULÁRIO E GRÁFICO */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
         <form onSubmit={handleCreateTransaction} style={{ backgroundColor: theme.bgCard, padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
           <h3 style={{ margin: '0 0 1rem 0', color: theme.textPrimary }}>Nova Transação</h3>
@@ -270,9 +343,9 @@ export default function Dashboard() {
         </form>
 
         <div style={{ backgroundColor: theme.bgCard, padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', color: theme.textPrimary, alignSelf: 'flex-start' }}>Visão Geral</h3>
+          <h3 style={{ margin: '0 0 0.5rem 0', color: theme.textPrimary, alignSelf: 'flex-start' }}>Visão Geral do Mês</h3>
           {income === 0 && outcome === 0 ? (
-            <p style={{ color: theme.textSecondary, margin: 'auto' }}>Sem dados para exibir no gráfico.</p>
+            <p style={{ color: theme.textSecondary, margin: 'auto' }}>Sem lançamentos neste período.</p>
           ) : (
             <div style={{ width: '100%', height: '220px' }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -299,11 +372,12 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* TABELA DE HISTÓRICO */}
       <div style={{ backgroundColor: theme.bgCard, padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
           <h3 style={{ margin: 0, color: theme.textPrimary }}>Histórico de Transações</h3>
           
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', border: `1px solid ${theme.border}`, borderRadius: '6px', padding: '0.4rem 0.75rem' }}>
               <Search size={16} color={theme.textSecondary} />
               <input
@@ -331,7 +405,7 @@ export default function Dashboard() {
         </div>
 
         {filteredTransactions.length === 0 ? (
-          <p style={{ color: theme.textSecondary, margin: 0 }}>Nenhuma transação encontrada.</p>
+          <p style={{ color: theme.textSecondary, margin: 0 }}>Nenhuma transação encontrada para este período.</p>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>

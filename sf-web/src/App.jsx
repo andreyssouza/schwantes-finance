@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Auth } from './pages/Auth';
-import  Dashboard  from './pages/Dashboard';
+import Dashboard from './pages/Dashboard';
 import { Toaster } from 'react-hot-toast';
+import logoImg from './assets/logosf.png';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -18,12 +19,19 @@ export default function App() {
     return <Auth onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
-return (
+  return (
     <>
       <Toaster position="top-right" reverseOrder={false} />
       <div style={styles.container}>
         <header style={styles.header}>
-          <h1 style={styles.title}>Schwantes Finance</h1>
+          <div style={styles.logoContainer}>
+            <img 
+              src={logoImg} 
+              alt="Schwantes Finance" 
+              style={styles.logoImage} 
+            />
+            <h1 style={styles.title}>Schwantes Finance</h1>
+          </div>
           <button onClick={handleLogout} style={styles.logoutButton}>
             Sair
           </button>
@@ -51,6 +59,18 @@ const styles = {
     padding: '1rem 2rem',
     backgroundColor: '#ffffff',
     borderBottom: '1px solid #e2e8f0',
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  logoContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  logoImage: {
+    height: '36px',
+    width: 'auto',
+    objectFit: 'contain',
   },
   title: {
     margin: 0,

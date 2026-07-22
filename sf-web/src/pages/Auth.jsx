@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../api';
+import LogoImg from '../assets/logosf.png';
 
 export function Auth({ onLoginSuccess }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -36,7 +37,7 @@ export function Auth({ onLoginSuccess }) {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h1 style={styles.title}>Schwantes Finance</h1>
+        <img src={LogoImg} alt="Schwantes Finance" style={styles.logoImage} />
         <p style={styles.subtitle}>
           {isLogin ? 'Acesse sua conta para gerenciar suas finanças' : 'Crie sua conta gratuitamente'}
         </p>
@@ -141,5 +142,10 @@ const styles = {
     borderRadius: '4px',
     marginBottom: '1rem',
     fontSize: '0.875rem',
+  },
+
+  logoImage: {
+    height: '150px',
+    width: 'auto',
   },
 };
