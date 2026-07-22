@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Auth } from './pages/Auth';
+import { Dashboard } from './pages/Dashboard';
 
 export default function App() {
-  // Inicializa checando direto se já existe token salvo no localStorage
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return !!localStorage.getItem('token');
   });
@@ -27,8 +27,7 @@ export default function App() {
       </header>
 
       <main style={styles.content}>
-        <h2>Dashboard</h2>
-        <p>Você está autenticado com sucesso!</p>
+        <Dashboard />
       </main>
     </div>
   );
