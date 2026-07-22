@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Auth } from './pages/Auth';
-import { Dashboard } from './pages/Dashboard';
+import  Dashboard  from './pages/Dashboard';
+import { Toaster } from 'react-hot-toast';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -17,19 +18,22 @@ export default function App() {
     return <Auth onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
-  return (
-    <div style={styles.container}>
-      <header style={styles.header}>
-        <h1 style={styles.title}>Schwantes Finance</h1>
-        <button onClick={handleLogout} style={styles.logoutButton}>
-          Sair
-        </button>
-      </header>
+return (
+    <>
+      <Toaster position="top-right" reverseOrder={false} />
+      <div style={styles.container}>
+        <header style={styles.header}>
+          <h1 style={styles.title}>Schwantes Finance</h1>
+          <button onClick={handleLogout} style={styles.logoutButton}>
+            Sair
+          </button>
+        </header>
 
-      <main style={styles.content}>
-        <Dashboard />
-      </main>
-    </div>
+        <main style={styles.content}>
+          <Dashboard />
+        </main>
+      </div>
+    </>
   );
 }
 
