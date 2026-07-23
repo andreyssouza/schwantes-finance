@@ -11,7 +11,7 @@ router.use(authMiddleware);
 // 1. Criar nova transação (Entrada ou Saída)
 router.post('/', async (req, res) => {
   try {
-    const { description, amount, type } = req.body;
+    const { description, amount, type, category } = req.body;
 
     if (!description || !amount || !type) {
       return res.status(400).json({ error: 'Preencha todos os campos obrigatórios.' });
@@ -21,13 +21,15 @@ router.post('/', async (req, res) => {
       data: {
         description,
         amount: parseFloat(amount),
-        type, // 'INCOME' ou 'EXPENSE'
+        type, // 'INCOME' ou 'EXPENSE' / 'income' ou 'expense'
+        category: category || 'Outros', // Salva a categoria enviada ou define o padrão 'Outros'
         userId: req.userId, // Veio do token JWT no middleware
       },
     });
 
     return res.status(201).json(transaction);
   } catch (error) {
+    console.error('Erro ao criar transação:', error);
     return res.status(500).json({ error: 'Erro ao criar transação.' });
   }
 });
@@ -43,10 +45,10 @@ router.get('/', async (req, res) => {
     // Calcula os totais automaticamente no backend
     const summary = transactions.reduce(
       (acc, item) => {
-        if (item.type === 'INCOME') {
+        if (item.type === 'INCOME' || item.type === 'income') {
           acc.income += item.amount;
           acc.total += item.amount;
-        } else if (item.type === 'EXPENSE') {
+        } else if (item.type === 'EXPENSE' || item.type === 'expense') {
           acc.expense += item.amount;
           acc.total -= item.amount;
         }
@@ -57,6 +59,7 @@ router.get('/', async (req, res) => {
 
     return res.json({ transactions, summary });
   } catch (error) {
+    console.error('Erro ao buscar transações:', error);
     return res.status(500).json({ error: 'Erro ao buscar transações.' });
   }
 });
@@ -79,6 +82,7 @@ router.delete('/:id', async (req, res) => {
 
     return res.json({ message: 'Transação removida com sucesso!' });
   } catch (error) {
+    console.error('Erro ao deletar transação:', error);
     return res.status(500).json({ error: 'Erro ao deletar transação.' });
   }
 });
