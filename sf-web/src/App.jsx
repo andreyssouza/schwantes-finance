@@ -3,6 +3,7 @@ import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import { Auth } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import LandingPage from './pages/LandingPage';
 import { Toaster } from 'react-hot-toast';
 import logoImg from './assets/logosfoff.png';
 import { LayoutDashboard, User } from 'lucide-react';
@@ -40,12 +41,12 @@ export default function App() {
     navigate('/');
   };
 
-  // Se NÃO estiver autenticado, renderiza o Toaster + a tela de Auth
+  // Se NÃO estiver autenticado, mostra a landing page + entrada
   if (!isAuthenticated) {
     return (
       <>
         <Toaster position="top-right" reverseOrder={false} />
-        <Auth onLoginSuccess={() => setIsAuthenticated(true)} />
+        <LandingPage />
       </>
     );
   }
