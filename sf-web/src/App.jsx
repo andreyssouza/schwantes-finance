@@ -4,10 +4,11 @@ import { Auth } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Goals from './pages/Goals';
+import Investments from './pages/Investments';
 import LandingPage from './pages/LandingPage';
 import { Toaster } from 'react-hot-toast';
 import logoImg from './assets/logosfoff.png';
-import { LayoutDashboard, User, Target } from 'lucide-react';
+import { LayoutDashboard, User, Target, TrendingUp } from 'lucide-react';
 
 const FINANCIAL_QUOTES = [
   'A diferença entre o inteligente e o sábio, é que o sábio pensa a longo prazo.',
@@ -96,6 +97,17 @@ export default function App() {
                 </NavLink>
 
                 <NavLink
+                  to="/investments"
+                  style={({ isActive }) => ({
+                    ...styles.navButton,
+                    ...(isActive ? styles.activeNavButton : {}),
+                  })}
+                >
+                  <TrendingUp size={18} />
+                  Investimentos
+                </NavLink>
+
+                <NavLink
                   to="/profile"
                   style={({ isActive }) => ({
                     ...styles.navButton,
@@ -117,6 +129,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/goals" element={<Goals />} />
+              <Route path="/investments" element={<Investments />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

@@ -16,6 +16,7 @@ model User {
   createdAt    DateTime      @default(now())
   transactions Transaction[]
   goals Goal[]
+  investments  Investment[]
 }
 
 model Goal {
@@ -29,6 +30,18 @@ model Goal {
   createdAt     DateTime @default(now())
   userId        String
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Investment {
+  id              String   @id @default(uuid())
+  name            String
+  type            String
+  investedAmount  Float
+  currentValue    Float
+  monthlyRate     Float    @default(0)
+  createdAt       DateTime @default(now())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Transaction {
