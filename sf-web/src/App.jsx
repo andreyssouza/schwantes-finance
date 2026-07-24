@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
+import { Routes, Route, NavLink, useNavigate, Navigate } from 'react-router-dom';
 import { Auth } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
@@ -8,7 +8,6 @@ import { Toaster } from 'react-hot-toast';
 import logoImg from './assets/logosfoff.png';
 import { LayoutDashboard, User } from 'lucide-react';
 
-// Lista de frases inspiradoras sobre finanças e foco
 const FINANCIAL_QUOTES = [
   "A diferença entre o inteligente e o sábio, é que o sábio pensa a longo prazo.",
   "Cuidado com as pequenas despesas; um pequeno vazamento afunda um grande navio.",
@@ -21,16 +20,20 @@ const FINANCIAL_QUOTES = [
 
 export default function App() {
   const navigate = useNavigate();
-  
+
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return !!localStorage.getItem('token');
   });
 
-  // Inicializa a frase diretamente no estado
   const [currentQuote] = useState(() => {
     const randomIndex = Math.floor(Math.random() * FINANCIAL_QUOTES.length);
     return FINANCIAL_QUOTES[randomIndex];
   });
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+    navigate('/');
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -41,79 +44,72 @@ export default function App() {
     navigate('/');
   };
 
-  // Se NÃO estiver autenticado, mostra a landing page + entrada
-  if (!isAuthenticated) {
-    return (
-      <>
-        <Toaster position="top-right" reverseOrder={false} />
-        <LandingPage />
-      </>
-    );
-  }
-
-  // Se ESTIVER autenticado, renderiza o painel completo
   return (
     <>
       <Toaster position="top-right" reverseOrder={false} />
-      <div style={styles.container}>
-        <header style={styles.header}>
-          
-          {/* APENAS A LOGO */}
-          <div style={styles.logoContainer}>
-            <img 
-              src={logoImg} 
-              alt="Logo Schwantes Finance" 
-              style={styles.logoImage} 
-            />
-          </div>
 
-          {/* BANNER DA FRASE MOTIVACIONAL */}
-          <div style={styles.quoteContainer}>
-            <p style={styles.quoteText}>"{currentQuote}"</p>
-          </div>
+      {!isAuthenticated ? (
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/auth" element={<Auth onLoginSuccess={handleLoginSuccess} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      ) : (
+        <div style={styles.container}>
+          <header style={styles.header}>
+            <div style={styles.logoContainer}>
+              <img
+                src={logoImg}
+                alt="Logo Schwantes Finance"
+                style={styles.logoImage}
+              />
+            </div>
 
-          {/* MENU E BOTÃO SAIR */}
-          <div style={styles.actionsContainer}>
-            <nav style={styles.nav}>
-              <NavLink 
-                to="/" 
-                end
-                style={({ isActive }) => ({
-                  ...styles.navButton,
-                  ...(isActive ? styles.activeNavButton : {})
-                })}
-              >
-                <LayoutDashboard size={18} />
-                Dashboard
-              </NavLink>
+            <div style={styles.quoteContainer}>
+              <p style={styles.quoteText}>"{currentQuote}"</p>
+            </div>
 
-              <NavLink 
-                to="/profile" 
-                style={({ isActive }) => ({
-                  ...styles.navButton,
-                  ...(isActive ? styles.activeNavButton : {})
-                })}
-              >
-                <User size={18} />
-                Meu Perfil
-              </NavLink>
-            </nav>
+            <div style={styles.actionsContainer}>
+              <nav style={styles.nav}>
+                <NavLink
+                  to="/"
+                  end
+                  style={({ isActive }) => ({
+                    ...styles.navButton,
+                    ...(isActive ? styles.activeNavButton : {}),
+                  })}
+                >
+                  <LayoutDashboard size={18} />
+                  Dashboard
+                </NavLink>
 
-            <button onClick={handleLogout} style={styles.logoutButton}>
-              Sair
-            </button>
-          </div>
+                <NavLink
+                  to="/profile"
+                  style={({ isActive }) => ({
+                    ...styles.navButton,
+                    ...(isActive ? styles.activeNavButton : {}),
+                  })}
+                >
+                  <User size={18} />
+                  Meu Perfil
+                </NavLink>
+              </nav>
 
-        </header>
+              <button onClick={handleLogout} style={styles.logoutButton}>
+                Sair
+              </button>
+            </div>
+          </header>
 
-        {/* ROTAS */}
-        <main style={styles.content}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-          </Routes>
-        </main>
-      </div>
+          <main style={styles.content}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+        </div>
+      )}
     </>
   );
 }

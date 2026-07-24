@@ -1,28 +1,38 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api';
 import toast from 'react-hot-toast';
 import logoImg from '../assets/logosfoff.png';
 import { User, Mail, Lock, FileText, Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
 
 export function Auth({ onLoginSuccess }) {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
 
-  // Estados dos campos
+  const initialMode = useMemo(() => {
+    const mode = searchParams.get('mode');
+    return mode === 'register' ? 'register' : 'login';
+  }, [searchParams]);
+
+  const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [name, setName] = useState('');
   const [cpf, setCpf] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  // Auxiliares de interface
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Função para aplicar máscara de CPF (000.000.000-00)
+  const resetForm = () => {
+    setName('');
+    setCpf('');
+    setEmail('');
+    setPassword('');
+    setShowPassword(false);
+  };
+
   const handleCpfChange = (e) => {
-    let value = e.target.value.replace(/\D/g, ''); // Remove caracteres não numéricos
+    let value = e.target.value.replace(/\D/g, '');
     if (value.length > 11) value = value.slice(0, 11);
 
-    // Aplica a formatação
     value = value.replace(/(\d{3})(\d)/, '$1.$2');
     value = value.replace(/(\d{3})(\d)/, '$1.$2');
     value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
@@ -36,38 +46,33 @@ export function Auth({ onLoginSuccess }) {
 
     try {
       if (isLogin) {
-        // --- ROTA DE LOGIN ---
-        if (!email || !password) {
+        if (!email.trim() || !password.trim()) {
           toast.error('Preencha o e-mail e a senha!');
-          setLoading(false);
           return;
         }
 
         const response = await api.post('/auth/login', { email, password });
         const { token, user } = response.data;
 
-        // Salva o token
         localStorage.setItem('token', token);
         localStorage.setItem('@SF:token', token);
 
-        // Salva os dados do usuário nas duas chaves para garantir sincronia no Profile
         if (user) {
           localStorage.setItem('user', JSON.stringify(user));
           localStorage.setItem('@SF:user', JSON.stringify(user));
         }
 
         toast.success(`Bem-vindo(a), ${user?.name || 'usuário'}!`);
-        if (onLoginSuccess) onLoginSuccess(user);
 
+        if (onLoginSuccess) {
+          onLoginSuccess(user);
+        }
       } else {
-        // --- ROTA DE CADASTRO ---
-        if (!name || !cpf || !email || !password) {
+        if (!name.trim() || !cpf.trim() || !email.trim() || !password.trim()) {
           toast.error('Preencha todos os campos do cadastro!');
-          setLoading(false);
           return;
         }
 
-        // Limpa a pontuação do CPF para enviar apenas números
         const rawCpf = cpf.replace(/\D/g, '');
 
         await api.post('/auth/register', {
@@ -79,7 +84,6 @@ export function Auth({ onLoginSuccess }) {
 
         toast.success('Cadastro realizado com sucesso! Efetuando login...');
 
-        // Faz login automático imediatamente após o cadastro
         const loginResponse = await api.post('/auth/login', { email, password });
         const { token, user } = loginResponse.data;
 
@@ -88,17 +92,22 @@ export function Auth({ onLoginSuccess }) {
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('@SF:user', JSON.stringify(user));
 
-        if (onLoginSuccess) onLoginSuccess(user);
+        if (onLoginSuccess) {
+          onLoginSuccess(user);
+        }
+
+        resetForm();
       }
     } catch (err) {
       console.error('Erro na autenticação:', err);
 
-      // Tratamento genérico e abrangente para capturar qualquer formato de erro do backend
       const errorMessage =
         err.response?.data?.error ||
         err.response?.data?.message ||
         err.response?.data?.details ||
-        (isLogin ? 'E-mail ou senha incorretos.' : 'Erro ao realizar cadastro. Verifique os dados.');
+        (isLogin
+          ? 'E-mail ou senha incorretos.'
+          : 'Erro ao realizar cadastro. Verifique os dados.');
 
       toast.error(errorMessage);
     } finally {
@@ -109,19 +118,17 @@ export function Auth({ onLoginSuccess }) {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        
-        {/* LOGO E TÍTULO */}
         <div style={styles.header}>
           <img src={logoImg} alt="Schwantes Finance" style={styles.logo} />
+          <h1 style={styles.title}>{isLogin ? 'Entrar' : 'Cadastro'}</h1>
           <p style={styles.subtitle}>
-            {isLogin ? 'Entre com sua conta para continuar' : 'Crie sua conta em poucos passos'}
+            {isLogin
+              ? 'Entre com sua conta para continuar.'
+              : 'Crie sua conta em poucos passos.'}
           </p>
         </div>
 
-        {/* FORMULÁRIO */}
         <form onSubmit={handleSubmit} style={styles.form}>
-          
-          {/* CAMPOS ADICIONAIS DO CADASTRO */}
           {!isLogin && (
             <>
               <div>
@@ -133,7 +140,6 @@ export function Auth({ onLoginSuccess }) {
                     placeholder="Seu nome completo"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    required={!isLogin}
                     style={styles.input}
                   />
                 </div>
@@ -148,7 +154,6 @@ export function Auth({ onLoginSuccess }) {
                     placeholder="000.000.000-00"
                     value={cpf}
                     onChange={handleCpfChange}
-                    required={!isLogin}
                     maxLength={14}
                     style={styles.input}
                   />
@@ -157,7 +162,6 @@ export function Auth({ onLoginSuccess }) {
             </>
           )}
 
-          {/* CAMPOS COMUNS (E-MAIL E SENHA) */}
           <div>
             <label style={styles.label}>Endereço de E-mail</label>
             <div style={styles.inputContainer}>
@@ -167,7 +171,6 @@ export function Auth({ onLoginSuccess }) {
                 placeholder="seu.email@exemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
                 style={styles.input}
               />
             </div>
@@ -182,12 +185,11 @@ export function Auth({ onLoginSuccess }) {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
                 style={styles.input}
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword((prev) => !prev)}
                 style={styles.eyeButton}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -195,29 +197,25 @@ export function Auth({ onLoginSuccess }) {
             </div>
           </div>
 
-          {/* BOTÃO PRINCIPAL */}
           <button type="submit" disabled={loading} style={styles.submitButton}>
             {isLogin ? <LogIn size={18} /> : <UserPlus size={18} />}
             {loading ? 'Aguarde...' : isLogin ? 'Entrar' : 'Cadastrar'}
           </button>
         </form>
 
-        {/* ALTERNAR ENTRE LOGIN E CADASTRO */}
         <div style={styles.footer}>
           <span>{isLogin ? 'Ainda não tem uma conta?' : 'Já possui uma conta?'}</span>
           <button
             type="button"
             onClick={() => {
-              setIsLogin(!isLogin);
-              setName('');
-              setCpf('');
+              setIsLogin((prev) => !prev);
+              resetForm();
             }}
             style={styles.switchButton}
           >
             {isLogin ? 'Cadastre-se' : 'Fazer Login'}
           </button>
         </div>
-
       </div>
     </div>
   );
@@ -249,8 +247,14 @@ const styles = {
     height: '150px',
     marginBottom: '0.5rem',
   },
+  title: {
+    margin: '0.25rem 0 0.25rem 0',
+    fontSize: '1.5rem',
+    fontWeight: '700',
+    color: '#0f172a',
+  },
   subtitle: {
-    margin: '0.25rem 0 0 0',
+    margin: 0,
     fontSize: '0.875rem',
     color: '#64748b',
   },
@@ -318,6 +322,7 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     gap: '0.35rem',
+    flexWrap: 'wrap',
   },
   switchButton: {
     background: 'none',

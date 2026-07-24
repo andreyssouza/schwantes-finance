@@ -2,19 +2,19 @@ import { useState, useEffect } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
 import { Doughnut } from 'react-chartjs-2';
-import { 
-  Chart as ChartJS, 
-  ArcElement, 
-  Tooltip, 
-  Legend 
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend
 } from 'chart.js';
-import { 
-  ArrowUpCircle, 
-  ArrowDownCircle, 
-  DollarSign, 
-  Trash2, 
-  Download, 
-  Search 
+import {
+  ArrowUpCircle,
+  ArrowDownCircle,
+  DollarSign,
+  Trash2,
+  Download,
+  Search
 } from 'lucide-react';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -22,6 +22,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 export default function Dashboard() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
 
   // Estados do Formulário de Nova Transação
   const [description, setDescription] = useState('');
@@ -43,8 +44,8 @@ export default function Dashboard() {
         const response = await api.get('/transactions');
         if (isMounted) {
           // Garante extração correta mesmo se a API envelopar a resposta
-          const data = Array.isArray(response.data) 
-            ? response.data 
+          const data = Array.isArray(response.data)
+            ? response.data
             : response.data?.transactions || response.data?.data || [];
 
           setTransactions(data);
@@ -98,7 +99,7 @@ export default function Dashboard() {
       };
 
       const response = await api.post('/transactions', payload);
-      
+
       setTransactions((prev) => [response.data, ...prev]);
       toast.success('Transação adicionada com sucesso!');
 
@@ -115,18 +116,38 @@ export default function Dashboard() {
 
   // Excluir Transação
   const handleDeleteTransaction = async (id) => {
+    const confirmDelete = window.confirm('Tem certeza que deseja excluir esta transação?');
+    if (!confirmDelete) return;
+
     try {
+      setDeletingId(id);
       await api.delete(`/transactions/${id}`);
       setTransactions((prev) => prev.filter((t) => t.id !== id));
       toast.success('Transação removida!');
     } catch (error) {
       console.error('Erro ao deletar transação:', error);
       toast.error('Erro ao excluir transação');
+    } finally {
+      setDeletingId(null);
     }
   };
 
   // Garantia de segurança contra dados que não sejam Array
   const safeTransactions = Array.isArray(transactions) ? transactions : [];
+
+  // Filtro na Lista de Transações
+  const filteredTransactions = safeTransactions.filter((t) => {
+    const matchesSearch = t.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesType =
+      filterType === 'ALL' ||
+      (filterType === 'income' && (t.type === 'income' || t.type === 'entrada')) ||
+      (filterType === 'expense' && (t.type === 'expense' || t.type === 'saida'));
+
+    const matchesCategory = filterCategory === 'ALL' || t.category === filterCategory;
+
+    return matchesSearch && matchesType && matchesCategory;
+  });
 
   // Exportar para CSV
   const exportToCSV = () => {
@@ -165,20 +186,6 @@ export default function Dashboard() {
 
   const totalBalance = totalIncome - totalExpense;
 
-  // Filtro na Lista de Transações
-  const filteredTransactions = safeTransactions.filter((t) => {
-    const matchesSearch = t.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesType = 
-      filterType === 'ALL' || 
-      (filterType === 'income' && (t.type === 'income' || t.type === 'entrada')) ||
-      (filterType === 'expense' && (t.type === 'expense' || t.type === 'saida'));
-
-    const matchesCategory = filterCategory === 'ALL' || t.category === filterCategory;
-
-    return matchesSearch && matchesType && matchesCategory;
-  });
-
   // Dados do Gráfico de Categorias
   const categoryTotals = safeTransactions
     .filter((t) => t.type === 'expense' || t.type === 'saida')
@@ -194,8 +201,13 @@ export default function Dashboard() {
       {
         data: Object.values(categoryTotals).length > 0 ? Object.values(categoryTotals) : [1],
         backgroundColor: [
-          '#3b82f6', '#ef4444', '#10b981', '#f59e0b', 
-          '#8b5cf6', '#ec4899', '#64748b'
+          '#3b82f6',
+          '#ef4444',
+          '#10b981',
+          '#f59e0b',
+          '#8b5cf6',
+          '#ec4899',
+          '#64748b'
         ],
         borderWidth: 1,
       },
@@ -204,7 +216,7 @@ export default function Dashboard() {
 
   return (
     <div style={styles.container}>
-      
+
       {/* TARJETAS DE RESUMO */}
       <div style={styles.cardsGrid}>
         <div style={styles.card}>
@@ -240,12 +252,12 @@ export default function Dashboard() {
 
       {/* SEÇÃO PRINCIPAL: FORMULÁRIO E GRÁFICO */}
       <div style={styles.mainGrid}>
-        
+
         {/* FORMULÁRIO */}
         <div style={styles.panel}>
           <h3 style={styles.panelTitle}>Nova Transação</h3>
           <form onSubmit={handleAddTransaction} style={styles.form}>
-            
+
             <input
               type="text"
               placeholder="Descrição (ex: Mercado, Aluguel)"
@@ -302,9 +314,9 @@ export default function Dashboard() {
         <div style={styles.panel}>
           <h3 style={styles.panelTitle}>Gastos por Categoria</h3>
           <div style={styles.chartContainer}>
-            <Doughnut 
-              data={chartData} 
-              options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} 
+            <Doughnut
+              data={chartData}
+              options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }}
             />
           </div>
         </div>
@@ -313,29 +325,29 @@ export default function Dashboard() {
 
       {/* HISTÓRICO DE TRANSAÇÕES */}
       <div style={styles.panel}>
-        
+
         <div style={styles.tableHeaderSection}>
           <h3 style={styles.panelTitle}>Histórico de Transações</h3>
-          
+
           <div style={styles.filtersContainer}>
-            
+
             <button onClick={exportToCSV} style={styles.exportButton}>
               <Download size={16} /> Exportar CSV
             </button>
 
             <div style={styles.searchBox}>
               <Search size={16} color="#94a3b8" />
-              <input 
-                type="text" 
-                placeholder="Buscar..." 
+              <input
+                type="text"
+                placeholder="Buscar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={styles.searchInput}
               />
             </div>
 
-            <select 
-              value={filterType} 
+            <select
+              value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
               style={styles.filterSelect}
             >
@@ -344,8 +356,8 @@ export default function Dashboard() {
               <option value="expense">Saídas</option>
             </select>
 
-            <select 
-              value={filterCategory} 
+            <select
+              value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
               style={styles.filterSelect}
             >
@@ -398,12 +410,13 @@ export default function Dashboard() {
                     </td>
                     <td style={styles.td}>{formattedDate}</td>
                     <td style={{ ...styles.td, textAlign: 'center' }}>
-                      <button 
-                        onClick={() => handleDeleteTransaction(t.id)} 
+                      <button
+                        onClick={() => handleDeleteTransaction(t.id)}
                         style={styles.deleteButton}
                         title="Excluir"
+                        disabled={deletingId === t.id}
                       >
-                        <Trash2 size={16} color="#ef4444" />
+                        {deletingId === t.id ? 'Excluindo...' : <Trash2 size={16} color="#ef4444" />}
                       </button>
                     </td>
                   </tr>
@@ -437,6 +450,7 @@ const styles = {
     padding: '1.5rem',
     borderRadius: '12px',
     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+    transition: 'all 0.2s ease',
   },
   cardHeader: {
     display: 'flex',
@@ -464,6 +478,7 @@ const styles = {
     padding: '1.5rem',
     borderRadius: '12px',
     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+    transition: 'all 0.2s ease',
   },
   panelTitle: {
     margin: '0 0 1.25rem 0',
@@ -504,6 +519,7 @@ const styles = {
     fontWeight: 'bold',
     cursor: 'pointer',
     fontSize: '0.9rem',
+    transition: 'all 0.2s ease',
   },
   chartContainer: {
     height: '240px',
@@ -535,6 +551,7 @@ const styles = {
     fontWeight: 'bold',
     cursor: 'pointer',
     fontSize: '0.85rem',
+    transition: 'all 0.2s ease',
   },
   searchBox: {
     display: 'flex',
@@ -593,5 +610,7 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
     padding: '0.25rem',
+    opacity: 1,
+    minWidth: '90px',
   },
 };
