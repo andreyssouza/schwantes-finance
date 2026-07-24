@@ -1,6 +1,6 @@
 # Schwantes Finance
 
-Aplicação web de finanças pessoais para controle de entradas e saídas, com autenticação de usuários, perfil, transações e resumo financeiro.
+Schwantes Finance é uma aplicação web de finanças pessoais para controle de entradas, saídas, metas financeiras e investimentos, com autenticação de usuários, perfil e resumo financeiro.
 
 O projeto é dividido em dois módulos:
 
@@ -17,6 +17,10 @@ O projeto é dividido em dois módulos:
 - Resumo financeiro com totais de entrada, saída e saldo
 - Edição de perfil
 - Alteração de senha
+- Cadastro, listagem e exclusão de metas financeiras
+- Cadastro, listagem e exclusão de investimentos
+- Simulador de investimentos
+- Resumo visual de metas e carteira
 
 ## Stack
 
@@ -57,6 +61,8 @@ sf-api/
     auth.js
     users.js
     transactions.js
+    goals.js
+    investments.js
     authMiddleware.js
   prisma/
     schema.prisma
@@ -96,10 +102,11 @@ JWT_SECRET="sua_chave_secreta"
 PORT=3333
 ```
 
-Execute as migrations do Prisma:
+Sincronize o schema do Prisma com o banco:
 
 ```bash
-npx prisma migrate dev
+npx prisma db push
+npx prisma generate
 ```
 
 Inicie o backend:
@@ -181,9 +188,21 @@ npm test
 - `GET /transactions`
 - `DELETE /transactions/:id`
 
+### Metas
+- `GET /goals`
+- `POST /goals`
+- `PUT /goals/:id`
+- `DELETE /goals/:id`
+
+### Investimentos
+- `GET /investments`
+- `POST /investments`
+- `PUT /investments/:id`
+- `DELETE /investments/:id`
+
 ## Banco de dados
 
-O schema Prisma possui dois modelos principais:
+O schema Prisma possui os seguintes modelos principais:
 
 - **User**
   - `id`
@@ -199,6 +218,27 @@ O schema Prisma possui dois modelos principais:
   - `type`
   - `category`
   - `date`
+  - `userId`
+
+- **Goal**
+  - `id`
+  - `name`
+  - `targetAmount`
+  - `currentAmount`
+  - `deadline`
+  - `category`
+  - `completed`
+  - `createdAt`
+  - `userId`
+
+- **Investment**
+  - `id`
+  - `name`
+  - `type`
+  - `investedAmount`
+  - `currentValue`
+  - `monthlyRate`
+  - `createdAt`
   - `userId`
 
 ## Observações de produção
