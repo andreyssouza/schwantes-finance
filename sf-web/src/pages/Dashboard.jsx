@@ -34,6 +34,7 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('ALL');
   const [filterCategory, setFilterCategory] = useState('ALL');
+  const [filterPeriod, setFilterPeriod] = useState('ALL');
 
   // Buscar transações ao carregar a página (com tratamento de Array seguro)
   useEffect(() => {
@@ -135,8 +136,49 @@ export default function Dashboard() {
   // Garantia de segurança contra dados que não sejam Array
   const safeTransactions = Array.isArray(transactions) ? transactions : [];
 
+  const getTransactionDate = (t) => {
+    const rawDate = t.createdAt || t.date;
+    return rawDate ? new Date(rawDate) : null;
+  };
+
+  const isInSelectedPeriod = (t) => {
+    if (filterPeriod === 'ALL') return true;
+
+    const txDate = getTransactionDate(t);
+    if (!txDate || isNaN(txDate.getTime())) return false;
+
+    const now = new Date();
+
+    if (filterPeriod === '7D') {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      return txDate >= sevenDaysAgo;
+    }
+
+    if (filterPeriod === '30D') {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(now.getDate() - 30);
+      return txDate >= thirtyDaysAgo;
+    }
+
+    if (filterPeriod === 'MONTH') {
+      return (
+        txDate.getFullYear() === now.getFullYear() &&
+        txDate.getMonth() === now.getMonth()
+      );
+    }
+
+    if (filterPeriod === 'YEAR') {
+      return txDate.getFullYear() === now.getFullYear();
+    }
+
+    return true;
+  };
+
+  const filteredSafeTransactions = safeTransactions.filter(isInSelectedPeriod);
+
   // Filtro na Lista de Transações
-  const filteredTransactions = safeTransactions.filter((t) => {
+  const filteredTransactions = filteredSafeTransactions.filter((t) => {
     const matchesSearch = t.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesType =
@@ -151,7 +193,7 @@ export default function Dashboard() {
 
   // Exportar para CSV
   const exportToCSV = () => {
-    if (safeTransactions.length === 0) {
+    if (filteredTransactions.length === 0) {
       toast.error('Nenhuma transação para exportar');
       return;
     }
@@ -176,18 +218,18 @@ export default function Dashboard() {
   };
 
   // Cálculos do Resumo Financeiro
-  const totalIncome = safeTransactions
+  const totalIncome = filteredSafeTransactions
     .filter((t) => t.type === 'income' || t.type === 'entrada')
     .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
-  const totalExpense = safeTransactions
+  const totalExpense = filteredSafeTransactions
     .filter((t) => t.type === 'expense' || t.type === 'saida')
     .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
   const totalBalance = totalIncome - totalExpense;
 
   // Dados do Gráfico de Categorias
-  const categoryTotals = safeTransactions
+  const categoryTotals = filteredSafeTransactions
     .filter((t) => t.type === 'expense' || t.type === 'saida')
     .reduce((acc, t) => {
       const cat = t.category || 'Outros';
@@ -369,6 +411,18 @@ export default function Dashboard() {
               <option value="Lazer">Lazer</option>
               <option value="Investimentos">Investimentos</option>
               <option value="Outros">Outros</option>
+            </select>
+
+            <select
+              value={filterPeriod}
+              onChange={(e) => setFilterPeriod(e.target.value)}
+              style={styles.filterSelect}
+            >
+              <option value="ALL">Todo período</option>
+              <option value="7D">Últimos 7 dias</option>
+              <option value="30D">Últimos 30 dias</option>
+              <option value="MONTH">Mês atual</option>
+              <option value="YEAR">Ano atual</option>
             </select>
 
           </div>

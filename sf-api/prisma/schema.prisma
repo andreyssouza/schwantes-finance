@@ -15,6 +15,20 @@ model User {
   password     String
   createdAt    DateTime      @default(now())
   transactions Transaction[]
+  goals Goal[]
+}
+
+model Goal {
+  id            String   @id @default(uuid())
+  name          String
+  targetAmount  Float
+  currentAmount Float    @default(0)
+  deadline      DateTime
+  category      String   @default("Outros")
+  completed     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Transaction {

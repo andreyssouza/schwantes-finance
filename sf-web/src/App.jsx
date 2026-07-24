@@ -3,19 +3,20 @@ import { Routes, Route, NavLink, useNavigate, Navigate } from 'react-router-dom'
 import { Auth } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import Goals from './pages/Goals';
 import LandingPage from './pages/LandingPage';
 import { Toaster } from 'react-hot-toast';
 import logoImg from './assets/logosfoff.png';
-import { LayoutDashboard, User } from 'lucide-react';
+import { LayoutDashboard, User, Target } from 'lucide-react';
 
 const FINANCIAL_QUOTES = [
-  "A diferença entre o inteligente e o sábio, é que o sábio pensa a longo prazo.",
-  "Cuidado com as pequenas despesas; um pequeno vazamento afunda um grande navio.",
-  "Gaste menos do que você ganha e invista a diferença com sabedoria.",
-  "Não economize o que sobra depois de gastar, mas gaste o que sobra depois de economizar.",
-  "O melhor investimento que você pode fazer é em você mesmo e no seu conhecimento.",
-  "Riqueza não é sobre ter muito dinheiro, é sobre ter opções e liberdade.",
-  "A disciplina financeira de hoje é a tranquilidade do seu amanhã."
+  'A diferença entre o inteligente e o sábio, é que o sábio pensa a longo prazo.',
+  'Cuidado com as pequenas despesas; um pequeno vazamento afunda um grande navio.',
+  'Gaste menos do que você ganha e invista a diferença com sabedoria.',
+  'Não economize o que sobra depois de gastar, mas gaste o que sobra depois de economizar.',
+  'O melhor investimento que você pode fazer é em você mesmo e no seu conhecimento.',
+  'Riqueza não é sobre ter muito dinheiro, é sobre ter opções e liberdade.',
+  'A disciplina financeira de hoje é a tranquilidade do seu amanhã.',
 ];
 
 export default function App() {
@@ -84,6 +85,17 @@ export default function App() {
                 </NavLink>
 
                 <NavLink
+                  to="/goals"
+                  style={({ isActive }) => ({
+                    ...styles.navButton,
+                    ...(isActive ? styles.activeNavButton : {}),
+                  })}
+                >
+                  <Target size={18} />
+                  Metas
+                </NavLink>
+
+                <NavLink
                   to="/profile"
                   style={({ isActive }) => ({
                     ...styles.navButton,
@@ -104,6 +116,7 @@ export default function App() {
           <main style={styles.content}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/goals" element={<Goals />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
