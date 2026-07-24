@@ -1,7 +1,7 @@
-<img width="3520" height="1080" alt="investimentos" src="https://github.com/user-attachments/assets/4471901f-cf73-443e-8912-42f260e1460f" />
-<img width="3520" height="1080" alt="metas" src="https://github.com/user-attachments/assets/cdb8a28b-e0ec-4280-b988-0cf5ce421318" />
-<img width="3520" height="1080" alt="dashboard" src="https://github.com/user-attachments/assets/e7bef89b-371f-409c-9dac-99f66a89fd00" />
 <img width="1919" height="1077" alt="landingpage" src="https://github.com/user-attachments/assets/639533d2-4569-418a-ae96-afa3e93ce8d3" />
+<img width="1913" height="1075" alt="dashboard" src="https://github.com/user-attachments/assets/0a3718c1-6829-4ade-8af2-50f626e83b90" />
+<img width="1919" height="1071" alt="metas" src="https://github.com/user-attachments/assets/d2b5e014-77a1-4ddb-a57b-86f21afc0c0b" />
+<img width="1911" height="1075" alt="investimentos" src="https://github.com/user-attachments/assets/28f919c8-ffba-4f23-a0bf-8eae233680e4" />
 
 
 # Schwantes Finance
