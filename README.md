@@ -1,3 +1,9 @@
+<img width="3520" height="1080" alt="investimentos" src="https://github.com/user-attachments/assets/4471901f-cf73-443e-8912-42f260e1460f" />
+<img width="3520" height="1080" alt="metas" src="https://github.com/user-attachments/assets/cdb8a28b-e0ec-4280-b988-0cf5ce421318" />
+<img width="3520" height="1080" alt="dashboard" src="https://github.com/user-attachments/assets/e7bef89b-371f-409c-9dac-99f66a89fd00" />
+<img width="1919" height="1077" alt="landingpage" src="https://github.com/user-attachments/assets/639533d2-4569-418a-ae96-afa3e93ce8d3" />
+
+
 # Schwantes Finance
 
 Schwantes Finance é uma aplicação web de finanças pessoais para controle de entradas, saídas, metas financeiras e investimentos, com autenticação de usuários, perfil e resumo financeiro.
